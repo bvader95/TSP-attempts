@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <cmath>
 
 /*
 * A class representing an instance of a travelling salesman problem
@@ -17,6 +18,7 @@ public:
 	SymmetricalTSP(std::string filename);
 	~SymmetricalTSP();
 	std::string printAll();
+	double getDistance(long long int point1, long long int point2);
 };
 
 SymmetricalTSP::SymmetricalTSP(std::string filename) {
@@ -55,6 +57,11 @@ std::string SymmetricalTSP::printAll() {
 			+std::to_string(coords[point].second)+"\n");
 	}
 	return output;
+}
+
+double SymmetricalTSP::getDistance(long long int point1, long long int point2) {
+	double a = coords[point2].first - coords[point1].first, b = coords[point2].second - coords[point1].second;
+	return sqrt(a*a+b*b);
 }
 
 SymmetricalTSP::~SymmetricalTSP(){
