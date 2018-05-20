@@ -1,8 +1,10 @@
 #pragma once
-#include <utility>
+#include <utility> //pairs
 #include <string>
-#include <fstream>
+#include <fstream> //reading from files
 #include <iostream>
+#include <cmath>   //square root f'n
+#include <cfloat>  //max float values
 
 /*
 * A class representing an instance of a travelling salesman problem
@@ -10,13 +12,15 @@
 */
 class SymmetricalTSP {
 private:
-	long long int n;//the amount of points
+	unsigned long long int n;//the amount of points
 	std::pair<double, double> *coords;//coordinates of the points
 public:
 	//the constructor loading an instance of a problem from a file
 	SymmetricalTSP(std::string filename);
 	~SymmetricalTSP();
 	std::string printAll();
+	double branchAndBound();
+	double getDistance(int v1, int v2);//an auxillary helper function for calculating distances between two vertices
 };
 
 SymmetricalTSP::SymmetricalTSP(std::string filename) {
@@ -61,3 +65,34 @@ SymmetricalTSP::~SymmetricalTSP(){
 	delete[] coords;
 }
 
+double SymmetricalTSP::branchAndBound() {
+	//Note: cost of a tour T can be presented as a half of a sum of two edges adjacent to each vertex belonging to the tour,
+	//which means an initial lower cound can be calculated as a half of a sum of two shortest edges coming out of each vertex
+	//Calculating the initial lower bound
+	double lowerBound = 0;
+	double shortest1, shortest2;//shortest and second shortest edges found
+	for (int v1 = 0; v1 < n; ++v1) {
+		shortest1 = DBL_MAX;
+		shortest2 = DBL_MAX;
+		for (int v2 = 0; v2 < n; ++v2) {
+			if (v1 == v2)continue;
+			double distance = getDistance(v1, v2);
+			if (distance < shortest1) {//the distance is the shortest edge found coming from a vertex v1
+				shortest2 = shortest1;
+				shortest1 = distance;
+			}
+			else if (distance < shortest2) {//the distance isn't the shortest edge found coming from v1, but is the second shortest
+				shortest2 = distance;
+			}
+		}
+		lowerBound = lowerBound + (shortest1 + shortest2) / 2;
+	}
+	return lowerBound;
+}
+
+double SymmetricalTSP::getDistance(int v1, int v2) {
+	std::pair<double, double> *vOne=&coords[v1], *vTwo=&coords[v2];
+	double x = (vTwo->first - vOne->first);
+	double y = (vTwo->second - vOne->second);
+	return sqrt(x*x+y*y);
+}
