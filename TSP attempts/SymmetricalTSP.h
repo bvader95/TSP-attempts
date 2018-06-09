@@ -12,7 +12,7 @@
 */
 class SymmetricalTSP {
 private:
-	unsigned long long int n;//the amount of points
+	unsigned int n;//the amount of points
 	std::pair<double, double> *coords;//coordinates of the points
 public:
 	//the constructor loading an instance of a problem from a file
@@ -20,7 +20,7 @@ public:
 	~SymmetricalTSP();
 	std::string printAll();
 	double branchAndBound();
-	double getDistance(int v1, int v2);//an auxillary helper function for calculating distances between two vertices
+	double getDistance(unsigned int v1, unsigned int v2);//an auxillary helper function for calculating distances between two vertices
 };
 
 SymmetricalTSP::SymmetricalTSP(std::string filename) {
@@ -31,13 +31,9 @@ SymmetricalTSP::SymmetricalTSP(std::string filename) {
 		return;
 	}
 	input >> n;
-	if (n <= 0) {
-		std::cerr << "Malformed data (you can't give me a negative amount of points)" << std::endl;
-		return;
-	}
 	coords = new std::pair<double, double>[n];
 	//TODO: check for when there's not enough data and print an error
-	for (int point = 0; point < n; ++point) {
+	for (unsigned int point = 0; point < n; ++point) {
 		double x, y;
 		input >> x >> y;
 		coords[point] = std::pair<double, double>(x, y);
@@ -53,7 +49,7 @@ std::string SymmetricalTSP::printAll() {
 	output = output + "Number of points: "+std::to_string(n)+"\n";
 	output = output + "Coordinates:\n";
 	output = output + "\tX\tY\n";
-	for (int point = 0; point < n; ++point) {
+	for (unsigned int point = 0; point < n; ++point) {
 		output.append(std::to_string(point+1)+":\t"
 			+std::to_string(coords[point].first)+"\t"
 			+std::to_string(coords[point].second)+"\n");
@@ -71,10 +67,10 @@ double SymmetricalTSP::branchAndBound() {
 	//Calculating the initial lower bound
 	double lowerBound = 0;
 	double shortest1, shortest2;//shortest and second shortest edges found
-	for (int v1 = 0; v1 < n; ++v1) {
+	for (unsigned int v1 = 0; v1 < n; ++v1) {
 		shortest1 = DBL_MAX;
 		shortest2 = DBL_MAX;
-		for (int v2 = 0; v2 < n; ++v2) {
+		for (unsigned int v2 = 0; v2 < n; ++v2) {
 			if (v1 == v2)continue;
 			double distance = getDistance(v1, v2);
 			if (distance < shortest1) {//the distance is the shortest edge found coming from a vertex v1
@@ -90,7 +86,7 @@ double SymmetricalTSP::branchAndBound() {
 	return lowerBound;
 }
 
-double SymmetricalTSP::getDistance(int v1, int v2) {
+double SymmetricalTSP::getDistance(unsigned int v1, unsigned int v2) {
 	std::pair<double, double> *vOne=&coords[v1], *vTwo=&coords[v2];
 	double x = (vTwo->first - vOne->first);
 	double y = (vTwo->second - vOne->second);
