@@ -62,27 +62,46 @@ SymmetricalTSP::~SymmetricalTSP(){
 }
 
 double SymmetricalTSP::branchAndBound() {
+	//an array containing the length of the shortest and second shortest edge coming out of a vertice, 
+	//used when calculating lower bounds
+	double *shortest = new double[n], *secondShortest = new double[n];
+	for (unsigned int i = 0; i < n; ++i) {
+		shortest[i] = DBL_MAX;
+		secondShortest[i] = DBL_MAX;
+	}
+	double distance;
+	for (unsigned int v1 = 0; v1 < n; ++v1) {
+		for (unsigned int v2 = v1 + 1; v2 < n; ++v2) {	//it's symmetrical TSP, so E(V1, V2)=E(V2, V1), 
+			distance = getDistance(v1, v2);
+			if (distance < shortest[v1]) {				//distance is shorter than the shortest so far
+				secondShortest[v1] = shortest[v1];
+				shortest[v1] = distance;
+			}
+			else if (distance < secondShortest[v1]) {	//distance is longer than the shortest so far,
+														//but shorter than the second shortest
+				secondShortest[v1] = distance;
+			}
+														//second verse, same as the first, but for V2
+			if (distance < shortest[v2]) {				//distance is shorter than the shortest so far
+				secondShortest[v2] = shortest[v2];
+				shortest[v2] = distance;
+			}
+			else if (distance < secondShortest[v2]) {	//distance is longer than the shortest so far, 
+														//but shorter than the second shortest
+				secondShortest[v2] = distance;
+			}
+		}
+	}
 	//Note: cost of a tour T can be presented as a half of a sum of two edges adjacent to each vertex belonging to the tour,
 	//which means an initial lower cound can be calculated as a half of a sum of two shortest edges coming out of each vertex
 	//Calculating the initial lower bound
 	double lowerBound = 0;
-	double shortest1, shortest2;//shortest and second shortest edges found
-	for (unsigned int v1 = 0; v1 < n; ++v1) {
-		shortest1 = DBL_MAX;
-		shortest2 = DBL_MAX;
-		for (unsigned int v2 = 0; v2 < n; ++v2) {
-			if (v1 == v2)continue;
-			double distance = getDistance(v1, v2);
-			if (distance < shortest1) {//the distance is the shortest edge found coming from a vertex v1
-				shortest2 = shortest1;
-				shortest1 = distance;
-			}
-			else if (distance < shortest2) {//the distance isn't the shortest edge found coming from v1, but is the second shortest
-				shortest2 = distance;
-			}
-		}
-		lowerBound = lowerBound + (shortest1 + shortest2) / 2;
+	for (unsigned int i = 0; i < n; ++i) {
+		lowerBound = lowerBound + shortest[i] + secondShortest[i];
 	}
+	lowerBound = lowerBound / 2;
+	delete[] shortest;
+	delete[] secondShortest;
 	return lowerBound;
 }
 
