@@ -5,11 +5,20 @@
 #include <iostream>
 #include <cmath>   //square root f'n
 #include <cfloat>  //max float values
+#include <vector>
 
 /*
 * A class representing an instance of a travelling salesman problem
 * where the distance between A and B is the same as between B and A
 */
+
+struct BnBSolution {
+	std::vector<unsigned int> vertices;//TODO: consider replacing with a priority queue
+	std::vector<bool> visited;
+	double lowerBound;
+	double value;
+};
+
 class SymmetricalTSP {
 private:
 	unsigned int n;//the amount of points
@@ -19,7 +28,7 @@ public:
 	SymmetricalTSP(std::string filename);
 	~SymmetricalTSP();
 	std::string printAll();
-	double branchAndBound();
+	BnBSolution branchAndBound();
 	double getDistance(unsigned int v1, unsigned int v2);//an auxillary helper function for calculating distances between two vertices
 };
 
@@ -61,7 +70,7 @@ SymmetricalTSP::~SymmetricalTSP(){
 	delete[] coords;
 }
 
-double SymmetricalTSP::branchAndBound() {
+BnBSolution SymmetricalTSP::branchAndBound() {
 	//an array containing the length of the shortest and second shortest edge coming out of a vertice, 
 	//used when calculating lower bounds
 	double *shortest = new double[n], *secondShortest = new double[n];
@@ -100,9 +109,17 @@ double SymmetricalTSP::branchAndBound() {
 		lowerBound = lowerBound + shortest[i] + secondShortest[i];
 	}
 	lowerBound = lowerBound / 2;
+	//creating an 'solution' to initialize the queue
+	BnBSolution best;
+	best.lowerBound = lowerBound;
+	best.vertices.reserve(n);//making the "vertices" vector just big enough to store the entire path
+	best.visited.resize(n, false);//making the "visited" vector store 
+	best.vertices.push_back(0);//adding vertex 0 as the first element of the path, which we can do w/o loss of generality
+	best.visited[0] = true;
+	best.value=UINT32_MAX;
 	delete[] shortest;
 	delete[] secondShortest;
-	return lowerBound;
+	return best;
 }
 
 double SymmetricalTSP::getDistance(unsigned int v1, unsigned int v2) {
