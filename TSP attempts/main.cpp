@@ -2,8 +2,11 @@
 #include "SymmetricalTSP.h"
 
 int main() {
-	SymmetricalTSP tsp("berlin52.txt");
-	std::cout << tsp.branchAndBound().lowerBound<<std::endl;
+	SymmetricalTSP tsp("burma9.txt");
+	TSPSolution sol = tsp.branchAndBound();
+	std::cout << sol.value<<std::endl;
+	for (unsigned int i = 0; i < sol.path.size(); ++i)std::cout << sol.path[i]<<" ";
+	std::cout << std::endl;
 	system("pause");
 	return 0;
 }
