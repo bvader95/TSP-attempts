@@ -2,7 +2,7 @@
 #include "SymmetricalTSP.h"
 
 int main() {
-	SymmetricalTSP tsp("burma9.txt");
+	SymmetricalTSP tsp("burma14.txt");
 	TSPSolution sol = tsp.branchAndBound();
 	std::cout << sol.value<<std::endl;
 	for (unsigned int i = 0; i < sol.path.size(); ++i)std::cout << sol.path[i]<<" ";

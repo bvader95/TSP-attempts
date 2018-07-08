@@ -28,5 +28,14 @@
     <Text Include="berlin52.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="burma9.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="burma14.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="westernsahara29.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
