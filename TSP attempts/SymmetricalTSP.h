@@ -63,19 +63,11 @@ SymmetricalTSP::SymmetricalTSP(std::string filename) {
 	}
 	input >> n;
 	coords = new std::pair<double, double>[n];
-	//TODO: check for when there's not enough data and print an error
-	/*
-	for (unsigned int point = 0; point < n; ++point) {
-	double x, y;
-	input >> x >> y;
-	coords[point] = std::pair<double, double>(x, y);
-	}
-	*/
 	unsigned int readVariables = 0;
 	double buffer;
 	std::pair<double, double> bufferPair;
 	while (input>>buffer) {
-		if (readVariables >= 2 * n)break;//stopping after reading the 
+		if (readVariables >= 2 * n)break;//stopping after reading enough data
 		if (readVariables % 2 == 0) {
 			bufferPair.first = buffer;
 		}
