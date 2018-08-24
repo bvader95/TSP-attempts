@@ -37,24 +37,25 @@ struct TSPSolution {
 
 /*
 * A class representing an instance of a travelling salesman problem
-* where the distance between A and B is the same as between B and A
+* that takes coordinates of the cities as argument (as opposed to distances between them)
 */
 
-class SymmetricalTSP {
+class PointTSP {
 private:
 	unsigned int n;//the amount of points
 	std::pair<double, double> *coords;//coordinates of the points
+	//auxilliary helper functions that have no business being public
+	double getDistance(unsigned int v1, unsigned int v2);
 public:
 	//the constructor loading an instance of a problem from a file
-	SymmetricalTSP(std::string filename);
-	~SymmetricalTSP();
+	PointTSP(std::string filename);
+	~PointTSP();
 	std::string printAll();
 	TSPSolution bruteForce();
 	TSPSolution branchAndBound();
-	double getDistance(unsigned int v1, unsigned int v2);//an auxillary helper function for calculating distances between two vertices
 };
 
-SymmetricalTSP::SymmetricalTSP(std::string filename) {
+PointTSP::PointTSP(std::string filename) {
 	n = 0;
 	std::ifstream input(filename);
 	if (!input.is_open()) {
@@ -85,7 +86,7 @@ SymmetricalTSP::SymmetricalTSP(std::string filename) {
 	input.close();
 }
 
-std::string SymmetricalTSP::printAll() {
+std::string PointTSP::printAll() {
 	if (n <= 0) {
 		return "Class wasn't initialized";
 	}
@@ -101,11 +102,11 @@ std::string SymmetricalTSP::printAll() {
 	return output;
 }
 
-SymmetricalTSP::~SymmetricalTSP() {
+PointTSP::~PointTSP() {
 	delete[] coords;
 }
 
-TSPSolution SymmetricalTSP::bruteForce() {
+TSPSolution PointTSP::bruteForce() {
 	std::vector<unsigned int> permutation;
 	permutation.reserve(n);
 	for (unsigned int i = 0; i < n; ++i) permutation.push_back(i);
@@ -133,7 +134,7 @@ TSPSolution SymmetricalTSP::bruteForce() {
 	return best;
 }
 
-TSPSolution SymmetricalTSP::branchAndBound() {
+TSPSolution PointTSP::branchAndBound() {
 	//an array containing the length of the shortest and second shortest edge coming out of a vertex, 
 	//used when calculating lower bounds
 	std::vector<double> shortest;
@@ -142,7 +143,7 @@ TSPSolution SymmetricalTSP::branchAndBound() {
 	secondShortest.resize(n, DBL_MAX);
 	double distance;
 	for (unsigned int v1 = 0; v1 < n; ++v1) {
-		for (unsigned int v2 = v1 + 1; v2 < n; ++v2) {	//it's symmetrical TSP, so E(V1, V2)=E(V2, V1), so we can do that 
+		for (unsigned int v2 = 0; v2 < n; ++v2) { 
 			distance = getDistance(v1, v2);
 			if (distance < shortest[v1]) {				//distance is shorter than the shortest so far
 				secondShortest[v1] = shortest[v1];
@@ -230,7 +231,7 @@ TSPSolution SymmetricalTSP::branchAndBound() {
 	return output;
 }
 
-double SymmetricalTSP::getDistance(unsigned int v1, unsigned int v2) {
+double PointTSP::getDistance(unsigned int v1, unsigned int v2) {
 	std::pair<double, double> *vOne = &coords[v1], *vTwo = &coords[v2];
 	double x = (vTwo->first - vOne->first);
 	double y = (vTwo->second - vOne->second);
