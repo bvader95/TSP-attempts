@@ -10,6 +10,11 @@
 #include <algorithm>
 
 
+
+//TODO: rewrite the TSPSolution and BnB node structs
+//so that they'll be classes
+//OOP ALL THE WAY!
+
 /**
 * A structure representing a node of a tree created by the 
 * Branch and Bound algorithm, containing vertices in order of visiting, 
@@ -46,6 +51,7 @@ private:
 	std::pair<double, double> *coords;//coordinates of the points
 	//auxilliary helper functions that have no business being public
 	double getDistance(unsigned int v1, unsigned int v2);
+	double calculatePathsLength(TSPSolution &sol);
 public:
 	//the constructor loading an instance of a problem from a file
 	PointTSP(std::string filename);
@@ -107,30 +113,24 @@ PointTSP::~PointTSP() {
 }
 
 TSPSolution PointTSP::bruteForce() {
-	std::vector<unsigned int> permutation;
-	permutation.reserve(n);
-	for (unsigned int i = 0; i < n; ++i) permutation.push_back(i);
-	std::vector<unsigned int> initialState = permutation;
-	double current;
-	TSPSolution best;
+	TSPSolution current, best;
+	current.path.reserve(n);
+	for (unsigned int i = 0; i < n; ++i) current.path.push_back(i);
+	std::vector<unsigned int> initialState = current.path;
 	best.value = DBL_MAX;
 	short printCounter = 0;
 	do {
-		std::next_permutation(permutation.begin() + 1, permutation.end());
-		current = 0;
-		for (unsigned int i = 0; i < n; ++i) {
-			current = current + getDistance(permutation[i], permutation[(i + 1) % n]);
-		}
-		if (printCounter ==0  || best.value > current) {
-			for (unsigned int i = 0; i < n; ++i) std::cout << permutation[i] << " ";
-			std::cout << "\t" << current << "\t" << best.value << std::endl;
+		std::next_permutation(current.path.begin() + 1, current.path.end());
+		calculatePathsLength(current);
+		if (printCounter ==0  || best.value > current.value) {
+			for (unsigned int i = 0; i < n; ++i) std::cout << current.path[i] << " ";
+			std::cout << "\t" << current.value << "\t" << best.value << std::endl;
 		}
 		printCounter++;
-		if (best.value > current) {
-			best.path = permutation;
-			best.value = current;
+		if (best.value > current.value) {
+			best = current;
 		}
-	} while (permutation != initialState);
+	} while (current.path != initialState);
 	return best;
 }
 
@@ -236,4 +236,11 @@ double PointTSP::getDistance(unsigned int v1, unsigned int v2) {
 	double x = (vTwo->first - vOne->first);
 	double y = (vTwo->second - vOne->second);
 	return sqrt(x*x + y*y);
+}
+
+double PointTSP::calculatePathsLength(TSPSolution &sol) {
+	double length = 0.0;
+	for (unsigned int i = 0; i < n; ++i)length = length + getDistance(sol.path[i], sol.path[(i + 1)%n]);
+	sol.value = length;
+	return length;
 }
