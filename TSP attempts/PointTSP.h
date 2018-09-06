@@ -8,7 +8,8 @@
 #include <vector>
 #include <stack>
 #include <algorithm>
-
+#include <chrono> //time seeding, and maybe measuring in the future
+#include <random> //std::default_random_engine()
 
 
 //TODO: rewrite the TSPSolution and BnB node structs
@@ -52,6 +53,7 @@ private:
 	//auxilliary helper functions that have no business being public
 	double getDistance(unsigned int v1, unsigned int v2);
 	double calculatePathsLength(TSPSolution &sol);
+	TSPSolution singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned int end);
 public:
 	//the constructor loading an instance of a problem from a file
 	PointTSP(std::string filename);
@@ -59,6 +61,7 @@ public:
 	std::string printAll();
 	TSPSolution bruteForce();
 	TSPSolution branchAndBound();
+	TSPSolution localSearch();
 };
 
 PointTSP::PointTSP(std::string filename) {
@@ -74,7 +77,7 @@ PointTSP::PointTSP(std::string filename) {
 	double buffer;
 	std::pair<double, double> bufferPair;
 	while (input>>buffer) {
-		if (readVariables >= 2 * n)break;//stopping after reading enough data
+		if (readVariables >= 2 * n)break;//stopping after having read enough data
 		if (readVariables % 2 == 0) {
 			bufferPair.first = buffer;
 		}
@@ -243,4 +246,47 @@ double PointTSP::calculatePathsLength(TSPSolution &sol) {
 	for (unsigned int i = 0; i < n; ++i)length = length + getDistance(sol.path[i], sol.path[(i + 1)%n]);
 	sol.value = length;
 	return length;
+}
+
+TSPSolution PointTSP::localSearch() {
+	//generating the initial solution
+	//for now, let's do it randomly, later I'll think about better options
+	TSPSolution current;
+	current.path.reserve(n);
+	for (unsigned int i = 0; i < n; ++i)current.path.push_back(i);
+	std::shuffle(current.path.begin(), current.path.end(),
+		std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
+	calculatePathsLength(current);
+	TSPSolution best = current, twoOptResult;
+	//finding the best result that 2-opt can produce
+	while (true) {
+		for (unsigned int begin = 0; begin < n; ++begin) {
+			for (unsigned int end = 1; end <= n; ++end) {//all the 
+				if (end - begin == 1) continue;
+				twoOptResult = singleTwoOpt(current, begin, end);
+				if (twoOptResult.value < best.value) best=twoOptResult;
+			}
+		}
+		std::cout << best.value<<"\t";
+		for (unsigned int i = 0; i < n; ++i) std::cout << best.path[i] << " ";
+		std::cout << std::endl;
+		if (current.value == best.value) break;
+		else current = best;
+	}
+	return best;
+}
+
+//note: the function shifts vector elements between begin and end, including the former but not the latter
+//in short, [begin, end)
+TSPSolution PointTSP::singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned int end) {
+	TSPSolution output=sol;
+	if (begin > end) {
+		std::rotate(output.path.begin(), output.path.begin()+begin, output.path.end());
+		std::reverse(output.path.begin(), output.path.begin() + n - begin + end);
+	}
+	else {
+		std::reverse(output.path.begin() + begin, output.path.begin() + end);
+	}
+	calculatePathsLength(output);
+	return output;
 }
