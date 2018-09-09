@@ -54,6 +54,9 @@ private:
 	double getDistance(unsigned int v1, unsigned int v2);
 	double calculatePathsLength(TSPSolution &sol);
 	TSPSolution singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned int end);
+	TSPSolution generateRandomSolution();
+	TSPSolution generateNearestNeighbourSolution();
+	TSPSolution generateNearestNeighbourSolution(unsigned int initialVertex);
 public:
 	//the constructor loading an instance of a problem from a file
 	PointTSP(std::string filename);
@@ -251,17 +254,12 @@ double PointTSP::calculatePathsLength(TSPSolution &sol) {
 TSPSolution PointTSP::localSearch() {
 	//generating the initial solution
 	//for now, let's do it randomly, later I'll think about better options
-	TSPSolution current;
-	current.path.reserve(n);
-	for (unsigned int i = 0; i < n; ++i)current.path.push_back(i);
-	std::shuffle(current.path.begin(), current.path.end(),
-		std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
-	calculatePathsLength(current);
+	TSPSolution current = generateNearestNeighbourSolution();
 	TSPSolution best = current, twoOptResult;
 	//finding the best result that 2-opt can produce
 	while (true) {
 		for (unsigned int begin = 0; begin < n; ++begin) {
-			for (unsigned int end = 1; end <= n; ++end) {//all the 
+			for (unsigned int end = 1; end <= n; ++end) {
 				if (end - begin == 1) continue;
 				twoOptResult = singleTwoOpt(current, begin, end);
 				if (twoOptResult.value < best.value) best=twoOptResult;
@@ -288,5 +286,50 @@ TSPSolution PointTSP::singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned
 		std::reverse(output.path.begin() + begin, output.path.begin() + end);
 	}
 	calculatePathsLength(output);
+	return output;
+}
+
+inline TSPSolution PointTSP::generateRandomSolution(){
+	TSPSolution output;
+	output.path.reserve(n);
+	for (unsigned int i = 0; i < n; ++i)output.path.push_back(i);
+	std::shuffle(output.path.begin(), output.path.end(),
+		std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
+	calculatePathsLength(output);
+	return output;
+}
+
+inline TSPSolution PointTSP::generateNearestNeighbourSolution() {
+	return generateNearestNeighbourSolution(0);
+}
+
+inline TSPSolution PointTSP::generateNearestNeighbourSolution(unsigned int initialVertex){
+	TSPSolution output;
+	std::vector<bool> visited;//visited[x] is true if vertex x was visited when generating, false otherwise
+	output.path.push_back(initialVertex);
+	output.value = 0;
+	visited.resize(n, false);
+	visited[initialVertex] = true;
+	unsigned int currentVertex, nextVertex;
+	double shortestEdge;
+	while (output.path.size()<n){
+		//initialization
+		currentVertex = output.path.back();
+		shortestEdge = DBL_MAX;
+		//find the shortest path from the current vertex that wouldn't create a cycle
+		for (unsigned int i = 0; i < n; ++i) {
+			if (currentVertex == i)continue;
+			if (!visited[i] && getDistance(currentVertex, i) < shortestEdge) {
+				shortestEdge = getDistance(currentVertex, i);
+				nextVertex = i;
+			}
+		}
+		//add that path to the length and mark the relevant vertex as visited
+		output.value = output.value + shortestEdge;
+		output.path.push_back(nextVertex);
+		visited[nextVertex] = true;
+	}
+	//close the cycle
+	output.value = output.value + getDistance(output.path.back(), output.path.front());
 	return output;
 }
