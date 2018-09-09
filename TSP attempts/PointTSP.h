@@ -1,20 +1,15 @@
 #pragma once
-#include <utility> //pairs
-#include <string>
-#include <fstream> //reading from files
-#include <iostream>
-#include <cmath>   //square root f'n
-#include <cfloat>  //max float values
-#include <vector>
-#include <stack>
-#include <algorithm>
-#include <chrono> //time seeding, and maybe measuring in the future
-#include <random> //std::default_random_engine()
-
-
-//TODO: rewrite the TSPSolution and BnB node structs
-//so that they'll be classes
-//OOP ALL THE WAY!
+#include <utility>		//pairs
+#include <string>		//filenames for fstream
+#include <fstream>		//reading from files
+#include <iostream>		//printing on screen to show the progress of the current f'n
+#include <cmath>		//square root f'n
+#include <cfloat>		//max float values
+#include <vector>		//graph paths - dynamic arrays are a pain
+#include <stack>		//Branch and Bound; travelling through the solution tree
+#include <algorithm>	//fiddling with arrays
+#include <chrono>		//time seeding, and maybe measuring in the future
+#include <random>		//std::default_random_engine()
 
 /**
 * A structure representing a node of a tree created by the 
@@ -48,6 +43,7 @@ struct TSPSolution {
 
 class PointTSP {
 private:
+	//the main fields of the class, storing the params of the problem
 	unsigned int n;//the amount of points
 	std::pair<double, double> *coords;//coordinates of the points
 	//auxilliary helper functions that have no business being public
@@ -128,7 +124,7 @@ TSPSolution PointTSP::bruteForce() {
 	do {
 		std::next_permutation(current.path.begin() + 1, current.path.end());
 		calculatePathsLength(current);
-		if (printCounter ==0  || best.value > current.value) {
+		if (printCounter == 0 || best.value > current.value) {
 			for (unsigned int i = 0; i < n; ++i) std::cout << current.path[i] << " ";
 			std::cout << "\t" << current.value << "\t" << best.value << std::endl;
 		}
@@ -171,8 +167,10 @@ TSPSolution PointTSP::branchAndBound() {
 		}
 	}
 
-	//Note: cost of a tour T can be presented as a half of a sum of two edges adjacent to each vertex belonging to the tour,
-	//which means an initial lower bound can be calculated as a half of a sum of two shortest edges coming out of each vertex
+	//Note: cost of a tour T can be presented as a half of a sum 
+	//of two edges adjacent to each vertex belonging to the tour,
+	//which means an initial lower bound can be calculated as a half
+	//of a sum of two shortest edges coming out of each vertex
 	//Calculating the initial lower bound
 	double lowerBound = 0;
 	for (unsigned int i = 0; i < n; ++i) {
@@ -251,31 +249,36 @@ double PointTSP::calculatePathsLength(TSPSolution &sol) {
 	return length;
 }
 
+
 TSPSolution PointTSP::localSearch() {
 	//generating the initial solution
-	//for now, let's do it randomly, later I'll think about better options
 	TSPSolution current = generateNearestNeighbourSolution();
+	//orrrrrr
+	//TSPSolution current = generateRandomSolution();
 	TSPSolution best = current, twoOptResult;
 	//finding the best result that 2-opt can produce
 	while (true) {
 		for (unsigned int begin = 0; begin < n; ++begin) {
-			for (unsigned int end = 1; end <= n; ++end) {
-				if (end - begin == 1) continue;
+			for (unsigned int end = 1; end <= n; ++end) {//see note for singleTwoOpt for explanation why it's not [0,n-1]
+				if (end - begin == 1) continue;//one-vertex-long path, don't bother
 				twoOptResult = singleTwoOpt(current, begin, end);
 				if (twoOptResult.value < best.value) best=twoOptResult;
 			}
 		}
+		if (current.value == best.value) break;
+		else current = best;
 		std::cout << best.value<<"\t";
 		for (unsigned int i = 0; i < n; ++i) std::cout << best.path[i] << " ";
 		std::cout << std::endl;
-		if (current.value == best.value) break;
-		else current = best;
 	}
 	return best;
 }
 
-//note: the function shifts vector elements between begin and end, including the former but not the latter
-//in short, [begin, end)
+
+//IMPORTANT NOTE:
+//This function does the 2-opt for the range [begin, end),
+//because that's how the functions from <algorithm> operate
+//and it looks better than adding +1 everywhere
 TSPSolution PointTSP::singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned int end) {
 	TSPSolution output=sol;
 	if (begin > end) {
