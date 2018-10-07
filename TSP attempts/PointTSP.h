@@ -253,8 +253,8 @@ double PointTSP::calculatePathsLength(TSPSolution &sol) {
 
 TSPSolution PointTSP::localSearch() {
 	//generating the initial solution
-	//TSPSolution bestOverall = generateNearestNeighbourSolution();
-	TSPSolution bestOverall = generateRandomSolution();
+	TSPSolution bestOverall = generateNearestNeighbourSolution();
+	//TSPSolution bestOverall = generateRandomSolution();
 	TSPSolution bestInCycle = bestOverall, neighbour;
 	//finding the best result that the chosen neighbour-finding solution can produce
 	while (true) {
@@ -315,7 +315,9 @@ inline TSPSolution PointTSP::generateRandomSolution(){
 }
 
 inline TSPSolution PointTSP::generateNearestNeighbourSolution() {
-	return generateNearestNeighbourSolution(0);
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::uniform_int_distribution<unsigned int> dist(0, n - 1);
+	return generateNearestNeighbourSolution(dist(std::default_random_engine(seed)));
 }
 
 inline TSPSolution PointTSP::generateNearestNeighbourSolution(unsigned int initialVertex){
