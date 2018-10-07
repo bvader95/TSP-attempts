@@ -253,17 +253,17 @@ double PointTSP::calculatePathsLength(TSPSolution &sol) {
 
 TSPSolution PointTSP::localSearch() {
 	//generating the initial solution
-	TSPSolution current = generateNearestNeighbourSolution();
-	//orrrrrr
-	//TSPSolution current = generateRandomSolution();
-	TSPSolution best = current, twoOptResult;
+	//TSPSolution current = generateNearestNeighbourSolution();
+	TSPSolution current = generateRandomSolution();
+	TSPSolution best = current, neighbour;
 	//finding the best result that 2-opt can produce
 	while (true) {
-		for (unsigned int begin = 0; begin < n; ++begin) {
-			for (unsigned int end = 1; end <= n; ++end) {//see note for singleTwoOpt for explanation why it's not [0,n-1]
-				if (end - begin == 1) continue;//one-vertex-long path, don't bother
-				twoOptResult = singleTwoOpt(current, begin, end);
-				if (twoOptResult.value < best.value) best=twoOptResult;
+		for (unsigned int v1 = 0; v1 < n; ++v1) {
+			for (unsigned int v2 = 0; v2 < n; ++v2) {
+				if (v1==v2) continue;//one-vertex-long "path"
+				//neighbour = singleTwoOpt(current, v1, v2+1);//see note for singleTwoOpt for explanation why there's a +1
+				neighbour = swapTwoVertices(current, v1, v2);
+				if (neighbour.value < best.value) best=neighbour;
 			}
 		}
 		if (current.value == best.value) break;
@@ -296,6 +296,7 @@ TSPSolution PointTSP::singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned
 TSPSolution PointTSP::swapTwoVertices(TSPSolution sol, unsigned int v1, unsigned int v2) {
 	TSPSolution output = sol;
 	std::swap(output.path[v1], output.path[v2]);
+	calculatePathsLength(output);
 	return output;
 };
 
