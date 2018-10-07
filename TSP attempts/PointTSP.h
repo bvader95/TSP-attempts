@@ -253,26 +253,30 @@ double PointTSP::calculatePathsLength(TSPSolution &sol) {
 
 TSPSolution PointTSP::localSearch() {
 	//generating the initial solution
-	//TSPSolution current = generateNearestNeighbourSolution();
-	TSPSolution current = generateRandomSolution();
-	TSPSolution best = current, neighbour;
-	//finding the best result that 2-opt can produce
+	//TSPSolution bestOverall = generateNearestNeighbourSolution();
+	TSPSolution bestOverall = generateRandomSolution();
+	TSPSolution bestInCycle = bestOverall, neighbour;
+	//finding the best result that the chosen neighbour-finding solution can produce
 	while (true) {
 		for (unsigned int v1 = 0; v1 < n; ++v1) {
 			for (unsigned int v2 = 0; v2 < n; ++v2) {
 				if (v1==v2) continue;//one-vertex-long "path"
-				//neighbour = singleTwoOpt(current, v1, v2+1);//see note for singleTwoOpt for explanation why there's a +1
-				neighbour = swapTwoVertices(current, v1, v2);
-				if (neighbour.value < best.value) best=neighbour;
+				neighbour = singleTwoOpt(bestOverall, v1, v2+1);//see note for singleTwoOpt for explanation why there's a +1
+				//neighbour = swapTwoVertices(bestOverall, v1, v2);
+				if (neighbour.value < bestInCycle.value) { 
+					bestInCycle = neighbour;
+				}
 			}
 		}
-		if (current.value == best.value) break;
-		else current = best;
-		std::cout << best.value<<"\t";
-		for (unsigned int i = 0; i < n; ++i) std::cout << best.path[i] << " ";
+		if (bestOverall.value == bestInCycle.value) break;
+		else {
+			bestOverall = bestInCycle;
+		}
+		std::cout << bestInCycle.value<<"\t";
+		for (unsigned int i = 0; i < n; ++i) std::cout << bestInCycle.path[i] << " ";
 		std::cout << std::endl;
 	}
-	return best;
+	return bestOverall;
 }
 
 
