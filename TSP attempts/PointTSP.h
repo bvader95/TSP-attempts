@@ -50,6 +50,7 @@ private:
 	double getDistance(unsigned int v1, unsigned int v2);
 	double calculatePathsLength(TSPSolution &sol);
 	TSPSolution singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned int end);
+	TSPSolution swapTwoVertices(TSPSolution sol, unsigned int v1, unsigned int v2);
 	TSPSolution generateRandomSolution();
 	TSPSolution generateNearestNeighbourSolution();
 	TSPSolution generateNearestNeighbourSolution(unsigned int initialVertex);
@@ -291,6 +292,12 @@ TSPSolution PointTSP::singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned
 	calculatePathsLength(output);
 	return output;
 }
+
+TSPSolution PointTSP::swapTwoVertices(TSPSolution sol, unsigned int v1, unsigned int v2) {
+	TSPSolution output = sol;
+	std::swap(output.path[v1], output.path[v2]);
+	return output;
+};
 
 inline TSPSolution PointTSP::generateRandomSolution(){
 	TSPSolution output;
