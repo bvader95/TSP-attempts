@@ -1,8 +1,8 @@
 #include <iostream>
-#include "PointTSP.h"
+#include "MatrixTSP.h"
 
 int main() {
-	PointTSP tsp("burma14.txt");
+	MatrixTSP tsp("gr17.txt");
 	auto start = std::chrono::steady_clock::now();
 	TSPSolution sol = tsp.branchAndBound();
 	auto stop = std::chrono::steady_clock::now();

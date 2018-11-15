@@ -1,27 +1,32 @@
 #pragma once
 #include "AuxiliaryTSPh.h"	//some structures I wrote
-#include <utility>			//pairs
 #include <string>			//filenames for fstream, among other things
 #include <fstream>			//reading from files
 #include <iostream>			//printing on screen to show the progress of the current f'n
-#include <cmath>			//square root f'n
+//#include <cmath>			//square root f'n
 #include <cfloat>			//max float values
 #include <stack>			//Branch and Bound; travelling through the solution tree
 #include <algorithm>		//fiddling with arrays
 #include <chrono>			//time stuff
 #include <random>			//std::default_random_engine()
 
+/**
+* A structure representing a node of a tree created by the
+* Branch and Bound algorithm, containing vertices in order of visiting,
+* the length of the path, the information of what vertex was visited,
+* and the node's lower bound
+*/
 
 /*
 * A class representing an instance of a travelling salesman problem
 * that takes coordinates of the cities as argument (as opposed to distances between them)
 */
 
-class PointTSP {
+class MatrixTSP {
 private:
 	//the main fields of the class, storing the params of the problem
 	unsigned int n;//the amount of points
-	std::pair<double, double> *coords;//coordinates of the points
+	std::vector<std::vector<double>> distances; //distance matrix
 	//auxilliary helper functions that have no business being public
 	double getDistance(unsigned int v1, unsigned int v2);
 	double calculatePathsLength(TSPSolution &sol);
@@ -32,15 +37,14 @@ private:
 	TSPSolution generateNearestNeighbourSolution(unsigned int initialVertex);
 public:
 	//the constructor loading an instance of a problem from a file
-	PointTSP(std::string filename);
-	~PointTSP();
+	MatrixTSP(std::string filename);
 	std::string printAll();
 	TSPSolution bruteForce();
 	TSPSolution branchAndBound();
 	TSPSolution localSearch();
 };
 
-PointTSP::PointTSP(std::string filename) {
+MatrixTSP::MatrixTSP(std::string filename) {
 	n = 0;
 	std::ifstream input(filename);
 	if (!input.is_open()) {
@@ -48,30 +52,33 @@ PointTSP::PointTSP(std::string filename) {
 		return;
 	}
 	input >> n;
-	coords = new std::pair<double, double>[n];
-	unsigned int readVariables = 0;
+	//last-minute changes, I feel back like a student already!
+	distances.resize(n);
+	for (unsigned int i = 0; i < n; ++i)distances[i].resize(n);
+	unsigned int x,y;//variables marking the spot where the read value will be placed in the matrix
+	x = 0, y = 0;
 	double buffer;
-	std::pair<double, double> bufferPair;
+	//reading from the file,
+	//this probably could've been a for loop, but y'know...
 	while (input>>buffer) {
-		if (readVariables >= 2 * n)break;//stopping after having read enough data
-		if (readVariables % 2 == 0) {
-			bufferPair.first = buffer;
+		distances[x][y] = buffer;
+		++y;
+		if (y == n) {//row finished, move to the next one
+			y = 0;
+			x++;
 		}
-		else {
-			bufferPair.second = buffer;
-			coords[readVariables/2] = bufferPair;
+		if (x == n) {//all rows filled
+			break;
 		}
-		readVariables++;
 	}
-	if (readVariables < 2 * n) {
-		delete[] coords;
+	if (x!=n) {//not all rows were filled
 		n = 0;
-		std::cerr << "File didn't contain enough variables, check the validity of the data!"<<std::endl;
+		std::cerr << "File didn't contain enough variables, check the validity of the data!" << std::endl;
 	}
 	input.close();
 }
 
-std::string PointTSP::printAll() {
+std::string MatrixTSP::printAll() {
 	if (n <= 0) {
 		return "Class wasn't initialized";
 	}
@@ -79,19 +86,16 @@ std::string PointTSP::printAll() {
 	output = output + "Number of points: " + std::to_string(n) + "\n";
 	output = output + "Coordinates:\n";
 	output = output + "\tX\tY\n";
-	for (unsigned int point = 0; point < n; ++point) {
-		output.append(std::to_string(point + 1) + ":\t"
-			+ std::to_string(coords[point].first) + "\t"
-			+ std::to_string(coords[point].second) + "\n");
+	for (unsigned int row = 0; row < n; ++row) {
+		for (unsigned int col = 0; col < n; ++col) {
+			output = output + std::to_string(distances[row][col]) + "\t";
+		}
+		output = output + "\n";
 	}
 	return output;
 }
 
-PointTSP::~PointTSP() {
-	delete[] coords;
-}
-
-TSPSolution PointTSP::bruteForce() {
+TSPSolution MatrixTSP::bruteForce() {
 	TSPSolution current, best;
 	current.path.reserve(n);
 	for (unsigned int i = 0; i < n; ++i) current.path.push_back(i);
@@ -113,7 +117,7 @@ TSPSolution PointTSP::bruteForce() {
 	return best;
 }
 
-TSPSolution PointTSP::branchAndBound() {
+TSPSolution MatrixTSP::branchAndBound() {
 	//an array containing the length of the shortest and second shortest edge coming out of a vertex, 
 	//used when calculating lower bounds
 	std::vector<double> shortest;
@@ -122,7 +126,7 @@ TSPSolution PointTSP::branchAndBound() {
 	secondShortest.resize(n, DBL_MAX);
 	double distance;
 	for (unsigned int v1 = 0; v1 < n; ++v1) {
-		for (unsigned int v2 = 0; v2 < n; ++v2) { 
+		for (unsigned int v2 = 0; v2 < n; ++v2) {
 			distance = getDistance(v1, v2);
 			if (distance < shortest[v1]) {				//distance is shorter than the shortest so far
 				secondShortest[v1] = shortest[v1];
@@ -212,22 +216,19 @@ TSPSolution PointTSP::branchAndBound() {
 	return output;
 }
 
-double PointTSP::getDistance(unsigned int v1, unsigned int v2) {
-	std::pair<double, double> *vOne = &coords[v1], *vTwo = &coords[v2];
-	double x = (vTwo->first - vOne->first);
-	double y = (vTwo->second - vOne->second);
-	return sqrt(x*x + y*y);
+double MatrixTSP::getDistance(unsigned int v1, unsigned int v2) {
+	return distances[v1][v2];
 }
 
-double PointTSP::calculatePathsLength(TSPSolution &sol) {
+double MatrixTSP::calculatePathsLength(TSPSolution &sol) {
 	double length = 0.0;
-	for (unsigned int i = 0; i < n; ++i)length = length + getDistance(sol.path[i], sol.path[(i + 1)%n]);
+	for (unsigned int i = 0; i < n; ++i)length = length + getDistance(sol.path[i], sol.path[(i + 1) % n]);
 	sol.value = length;
 	return length;
 }
 
 
-TSPSolution PointTSP::localSearch() {
+TSPSolution MatrixTSP::localSearch() {
 	//generating the initial solution
 	TSPSolution bestOverall = generateNearestNeighbourSolution();
 	//TSPSolution bestOverall = generateRandomSolution();
@@ -236,10 +237,10 @@ TSPSolution PointTSP::localSearch() {
 	while (true) {
 		for (unsigned int v1 = 0; v1 < n; ++v1) {
 			for (unsigned int v2 = 0; v2 < n; ++v2) {
-				if (v1==v2) continue;//one-vertex-long "path"
-				neighbour = singleTwoOpt(bestOverall, v1, v2+1);//see note for singleTwoOpt for explanation why there's a +1
-				//neighbour = swapTwoVertices(bestOverall, v1, v2);
-				if (neighbour.value < bestInCycle.value) { 
+				if (v1 == v2) continue;//one-vertex-long "path"
+				neighbour = singleTwoOpt(bestOverall, v1, v2 + 1);//see note for singleTwoOpt for explanation why there's a +1
+																  //neighbour = swapTwoVertices(bestOverall, v1, v2);
+				if (neighbour.value < bestInCycle.value) {
 					bestInCycle = neighbour;
 				}
 			}
@@ -248,7 +249,7 @@ TSPSolution PointTSP::localSearch() {
 		else {
 			bestOverall = bestInCycle;
 		}
-		std::cout << bestInCycle.value<<"\t";
+		std::cout << bestInCycle.value << "\t";
 		for (unsigned int i = 0; i < n; ++i) std::cout << bestInCycle.path[i] << " ";
 		std::cout << std::endl;
 	}
@@ -260,10 +261,10 @@ TSPSolution PointTSP::localSearch() {
 //This function does the 2-opt for the range [begin, end),
 //because that's how the functions from <algorithm> operate
 //and it looks better than adding +1 everywhere
-TSPSolution PointTSP::singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned int end) {
-	TSPSolution output=sol;
+TSPSolution MatrixTSP::singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned int end) {
+	TSPSolution output = sol;
 	if (begin > end) {
-		std::rotate(output.path.begin(), output.path.begin()+begin, output.path.end());
+		std::rotate(output.path.begin(), output.path.begin() + begin, output.path.end());
 		std::reverse(output.path.begin(), output.path.begin() + n - begin + end);
 	}
 	else {
@@ -273,14 +274,14 @@ TSPSolution PointTSP::singleTwoOpt(TSPSolution sol, unsigned int begin, unsigned
 	return output;
 }
 
-TSPSolution PointTSP::swapTwoVertices(TSPSolution sol, unsigned int v1, unsigned int v2) {
+TSPSolution MatrixTSP::swapTwoVertices(TSPSolution sol, unsigned int v1, unsigned int v2) {
 	TSPSolution output = sol;
 	std::swap(output.path[v1], output.path[v2]);
 	calculatePathsLength(output);
 	return output;
 };
 
-inline TSPSolution PointTSP::generateRandomSolution(){
+inline TSPSolution MatrixTSP::generateRandomSolution() {
 	TSPSolution output;
 	output.path.reserve(n);
 	for (unsigned int i = 0; i < n; ++i)output.path.push_back(i);
@@ -290,13 +291,13 @@ inline TSPSolution PointTSP::generateRandomSolution(){
 	return output;
 }
 
-inline TSPSolution PointTSP::generateNearestNeighbourSolution() {
+inline TSPSolution MatrixTSP::generateNearestNeighbourSolution() {
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::uniform_int_distribution<unsigned int> dist(0, n - 1);
 	return generateNearestNeighbourSolution(dist(std::default_random_engine(seed)));
 }
 
-inline TSPSolution PointTSP::generateNearestNeighbourSolution(unsigned int initialVertex){
+inline TSPSolution MatrixTSP::generateNearestNeighbourSolution(unsigned int initialVertex) {
 	TSPSolution output;
 	std::vector<bool> visited;//visited[x] is true if vertex x was visited when generating, false otherwise
 	output.path.push_back(initialVertex);
@@ -305,7 +306,7 @@ inline TSPSolution PointTSP::generateNearestNeighbourSolution(unsigned int initi
 	visited[initialVertex] = true;
 	unsigned int currentVertex, nextVertex;
 	double shortestEdge;
-	while (output.path.size()<n){
+	while (output.path.size()<n) {
 		//initialization
 		currentVertex = output.path.back();
 		shortestEdge = DBL_MAX;
