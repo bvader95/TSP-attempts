@@ -43,7 +43,6 @@ public:
 	TSPSolution bruteForce();
 	TSPSolution branchAndBound(bool showProgress);
 	TSPSolution branchAndBound();
-	TSPSolution localSearch(bool showProgress);
 	TSPSolution localSearch();
 };
 

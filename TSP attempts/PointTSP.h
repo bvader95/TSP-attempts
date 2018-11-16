@@ -35,7 +35,9 @@ public:
 	PointTSP(std::string filename);
 	~PointTSP();
 	std::string printAll();
+	TSPSolution bruteForce(bool showProgress);
 	TSPSolution bruteForce();
+	TSPSolution branchAndBound(bool showProgress);
 	TSPSolution branchAndBound();
 	TSPSolution localSearch();
 };
@@ -92,6 +94,9 @@ PointTSP::~PointTSP() {
 }
 
 TSPSolution PointTSP::bruteForce() {
+	return bruteForce(false)
+}
+TSPSolution PointTSP::bruteForce(bool showProgress) {
 	TSPSolution current, best;
 	current.path.reserve(n);
 	for (unsigned int i = 0; i < n; ++i) current.path.push_back(i);
@@ -101,7 +106,7 @@ TSPSolution PointTSP::bruteForce() {
 	do {
 		std::next_permutation(current.path.begin() + 1, current.path.end());
 		calculatePathsLength(current);
-		if (printCounter == 0 || best.value > current.value) {
+		if ((printCounter == 0 || best.value > current.value) && showProgress) {
 			for (unsigned int i = 0; i < n; ++i) std::cout << current.path[i] << " ";
 			std::cout << "\t" << current.value << "\t" << best.value << std::endl;
 		}
@@ -114,6 +119,9 @@ TSPSolution PointTSP::bruteForce() {
 }
 
 TSPSolution PointTSP::branchAndBound() {
+	return branchAndBound(false);
+}
+TSPSolution PointTSP::branchAndBound(bool showProgress) {
 	//an array containing the length of the shortest and second shortest edge coming out of a vertex, 
 	//used when calculating lower bounds
 	std::vector<double> shortest;
@@ -169,7 +177,7 @@ TSPSolution PointTSP::branchAndBound() {
 	while (!s.empty()) {
 		current = s.top();
 		s.pop();
-		if (printCounter == 0) {
+		if (printCounter == 0 && showProgress) {
 			std::cout << current.lowerBound << "\t" << best.value << "\t";
 			for (unsigned int i = 0; i < current.path.size(); ++i) std::cout << current.path[i] << " ";
 			std::cout << std::endl;
