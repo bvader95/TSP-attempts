@@ -7,7 +7,7 @@ int main() {
 
 	std::fstream outputFile;
 	outputFile.open("test_output.txt", std::fstream::out);
-	std::string filenames[] = { "matrix_10.txt", "matrix_12.txt", "matrix_14.txt", "matrix_17.txt" };
+	std::string filenames[] = { "matrix_6.txt", "matrix_10.txt", "matrix_12.txt", "matrix_13.txt", "matrix_14.txt" };
 
 	for (unsigned int file = 0; file < 4; ++file) {
 		MatrixTSP tsp(filenames[file]);
