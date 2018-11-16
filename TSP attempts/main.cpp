@@ -28,7 +28,6 @@ int main() {
 			outputFile << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << "\t";
 			outputFile << sol.value << "\n";
 		}
-		outputFile.close();
 	}
 	system("pause");
 	return 0;
