@@ -10,13 +10,6 @@
 #include <chrono>			//time stuff
 #include <random>			//std::default_random_engine()
 
-/**
-* A structure representing a node of a tree created by the
-* Branch and Bound algorithm, containing vertices in order of visiting,
-* the length of the path, the information of what vertex was visited,
-* and the node's lower bound
-*/
-
 /*
 * A class representing an instance of a travelling salesman problem
 * that takes coordinates of the cities as argument (as opposed to distances between them)
