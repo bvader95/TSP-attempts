@@ -47,7 +47,7 @@ MatrixTSP::MatrixTSP(std::string filename) {
 		return;
 	}
 	input >> n;
-	//last-minute changes, I feel back like a student already!
+	//last-minute changes, I feel like a student again already!
 	distances.resize(n);
 	for (unsigned int i = 0; i < n; ++i)distances[i].resize(n);
 	unsigned int x,y;//variables marking the spot where the read value will be placed in the matrix
