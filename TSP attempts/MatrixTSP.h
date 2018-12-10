@@ -28,6 +28,7 @@ private:
 	TSPSolution generateRandomSolution();
 	TSPSolution generateNearestNeighbourSolution();
 	TSPSolution generateNearestNeighbourSolution(unsigned int initialVertex);
+	TSPSolution generateRandomNeighbour(TSPSolution solution);
 public:
 	//the constructor loading an instance of a problem from a file
 	MatrixTSP(std::string filename);
@@ -37,6 +38,7 @@ public:
 	TSPSolution branchAndBound(bool showProgress);
 	TSPSolution branchAndBound();
 	TSPSolution localSearch();
+	TSPSolution simulatedAnnealing();
 };
 
 MatrixTSP::MatrixTSP(std::string filename) {
@@ -258,6 +260,28 @@ TSPSolution MatrixTSP::localSearch() {
 	return bestOverall;
 }
 
+inline TSPSolution MatrixTSP::simulatedAnnealing() {
+	//the <random> stuff that will be used to decide if we're accepting a worse solution or not
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::uniform_real_distribution<double> dist(0, 1);
+	TSPSolution best = generateRandomSolution(), current;
+	const double INITIAL_TEMPERATURE = 50 * n;//check how the change of that parameter affects solutions and times
+	double temperature=INITIAL_TEMPERATURE;
+	while (temperature > 0.005) {
+		current = generateRandomNeighbour(best);
+		if (best.value > current.value) {//we found a better solution, accept it unconditionally
+			best = current;
+		}
+		else {//the solution isn't better, but we might accept it based on "temperature"
+			double chance=temperature/INITIAL_TEMPERATURE;
+			if (chance > dist(std::default_random_engine(seed)))best = current;
+		}
+		temperature *= 0.95;//check different cooling strategies
+		std::cout <<"T= "<< temperature << std::endl;
+	}
+	return best;
+}
+
 
 //IMPORTANT NOTE:
 //This function does the 2-opt for the range [begin, end),
@@ -328,4 +352,14 @@ inline TSPSolution MatrixTSP::generateNearestNeighbourSolution(unsigned int init
 	//close the cycle
 	output.value = output.value + getDistance(output.path.back(), output.path.front());
 	return output;
+}
+
+
+TSPSolution MatrixTSP::generateRandomNeighbour(TSPSolution solution) {
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::uniform_int_distribution<unsigned int> dist(0, n - 1);
+	unsigned int begin, end;
+	begin = dist(std::default_random_engine(seed));
+	end = dist(std::default_random_engine(seed));
+	return singleTwoOpt(solution, begin, end);
 }

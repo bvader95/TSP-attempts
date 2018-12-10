@@ -36,7 +36,7 @@ int main() {
 	int algorithmNo;
 	std::cout << "Filename? ";
 	std::cin >> filename;
-	std::cout << "Algorithm? (0 - brute force, 1 - BnB) ";
+	std::cout << "Algorithm? (0 - brute force, 1 - BnB, 2 - annealing) ";
 	std::cin >> algorithmNo;
 	MatrixTSP tsp(filename);
 	TSPSolution sol;
@@ -50,11 +50,16 @@ int main() {
 		break;
 	case 1:
 		start = std::chrono::steady_clock::now();
-		sol = tsp.branchAndBound(true);
+		sol = tsp.branchAndBound(false);
+		stop = std::chrono::steady_clock::now();
+		break;
+	case 2:
+		start = std::chrono::steady_clock::now();
+		sol = tsp.simulatedAnnealing();
 		stop = std::chrono::steady_clock::now();
 		break;
 	default:
-		std::cout << "oops, wrong number, shutting down...";
+		std::cout << "oops, wrong number, shutting down..."<<std::endl;
 		break;
 	}
 	timeInMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
