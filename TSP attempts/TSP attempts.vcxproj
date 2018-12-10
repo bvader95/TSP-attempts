@@ -113,12 +113,20 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AuxiliaryTSPh.h" />
+    <ClInclude Include="MatrixTSP.h" />
     <ClInclude Include="PointTSP.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="berlin52.txt" />
     <Text Include="burma14.txt" />
     <Text Include="burma9.txt" />
+    <Text Include="matrix_12.txt" />
+    <Text Include="matrix_13.txt" />
+    <Text Include="matrix_14.txt" />
+    <Text Include="matrix_17.txt" />
+    <Text Include="matrix_10.txt" />
+    <Text Include="matrix_6.txt" />
     <Text Include="westernsahara29.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

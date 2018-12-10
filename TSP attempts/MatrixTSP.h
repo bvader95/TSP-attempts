@@ -38,7 +38,7 @@ public:
 	TSPSolution branchAndBound(bool showProgress);
 	TSPSolution branchAndBound();
 	TSPSolution localSearch();
-	TSPSolution simulatedAnnealing();
+	TSPSolution simulatedAnnealing(double initTemp, double multipleOfN, double coolingCoefficient);
 };
 
 MatrixTSP::MatrixTSP(std::string filename) {
@@ -260,23 +260,23 @@ TSPSolution MatrixTSP::localSearch() {
 	return bestOverall;
 }
 
-inline TSPSolution MatrixTSP::simulatedAnnealing() {
+inline TSPSolution MatrixTSP::simulatedAnnealing(double initTemp, double multipleOfN, double coolingCoefficient) {
 	//the <random> stuff that will be used to decide if we're accepting a worse solution or not
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::uniform_real_distribution<double> dist(0, 1);
 	TSPSolution best = generateRandomSolution(), current;
-	const double INITIAL_TEMPERATURE = 50 * n;//check how the change of that parameter affects solutions and times
-	double temperature=INITIAL_TEMPERATURE;
-	while (temperature > 0.005) {
+	if (multipleOfN != 0) initTemp = initTemp * n * multipleOfN;
+	double temperature = initTemp;
+	while (temperature > 0.0000001) {
 		current = generateRandomNeighbour(best);
 		if (best.value > current.value) {//we found a better solution, accept it unconditionally
 			best = current;
 		}
 		else {//the solution isn't better, but we might accept it based on "temperature"
-			double chance=temperature/INITIAL_TEMPERATURE;
+			double chance=temperature/initTemp;
 			if (chance > dist(std::default_random_engine(seed)))best = current;
 		}
-		temperature *= 0.95;//check different cooling strategies
+		temperature *= coolingCoefficient;//check different cooling strategies
 		std::cout <<"T= "<< temperature << std::endl;
 	}
 	return best;

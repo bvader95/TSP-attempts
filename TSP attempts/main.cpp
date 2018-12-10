@@ -55,7 +55,7 @@ int main() {
 		break;
 	case 2:
 		start = std::chrono::steady_clock::now();
-		sol = tsp.simulatedAnnealing();
+		sol = tsp.simulatedAnnealing(100000, 1, 0.99);
 		stop = std::chrono::steady_clock::now();
 		break;
 	default:

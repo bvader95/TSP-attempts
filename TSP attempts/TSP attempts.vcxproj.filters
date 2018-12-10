@@ -32,9 +32,33 @@
     <Text Include="westernsahara29.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="matrix_10.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="matrix_17.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="matrix_14.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="matrix_12.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="matrix_13.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="matrix_6.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PointTSP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixTSP.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AuxiliaryTSPh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
