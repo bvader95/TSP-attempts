@@ -253,31 +253,32 @@ TSPSolution MatrixTSP::localSearch() {
 		else {
 			bestOverall = bestInCycle;
 		}
-		std::cout << bestInCycle.value << "\t";
-		for (unsigned int i = 0; i < n; ++i) std::cout << bestInCycle.path[i] << " ";
-		std::cout << std::endl;
+		//std::cout << bestInCycle.value << "\t";
+		//for (unsigned int i = 0; i < n; ++i) std::cout << bestInCycle.path[i] << " ";
+		//std::cout << std::endl;
 	}
 	return bestOverall;
 }
 
 inline TSPSolution MatrixTSP::simulatedAnnealing(double initTemp, double multipleOfN, double coolingCoefficient) {
 	//the <random> stuff that will be used to decide if we're accepting a worse solution or not
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::uniform_real_distribution<double> dist(0, 1);
 	TSPSolution best = generateRandomSolution(), current;
+	double chanceToAccept, diceRoll;
 	if (multipleOfN != 0) initTemp = initTemp * n * multipleOfN;
 	double temperature = initTemp;
-	while (temperature > 0.0000001) {
+	while (temperature > 0.00001) {
 		current = generateRandomNeighbour(best);
 		if (best.value > current.value) {//we found a better solution, accept it unconditionally
 			best = current;
 		}
 		else {//the solution isn't better, but we might accept it based on "temperature"
-			double chance=temperature/initTemp;
-			if (chance > dist(std::default_random_engine(seed)))best = current;
+			chanceToAccept=temperature/initTemp;
+			diceRoll = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));//yeah, it's a weird dice
+			if (chanceToAccept > diceRoll)best = current;
 		}
 		temperature *= coolingCoefficient;//check different cooling strategies
-		std::cout <<"T= "<< temperature << std::endl;
+		//std::cout <<"T= "<< temperature << std::endl;
 	}
 	return best;
 }
@@ -356,10 +357,9 @@ inline TSPSolution MatrixTSP::generateNearestNeighbourSolution(unsigned int init
 
 
 TSPSolution MatrixTSP::generateRandomNeighbour(TSPSolution solution) {
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::uniform_int_distribution<unsigned int> dist(0, n - 1);
 	unsigned int begin, end;
-	begin = dist(std::default_random_engine(seed));
-	end = dist(std::default_random_engine(seed));
+	begin = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
+	end = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
 	return singleTwoOpt(solution, begin, end);
 }
