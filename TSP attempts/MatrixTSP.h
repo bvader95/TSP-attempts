@@ -265,8 +265,8 @@ inline TSPSolution MatrixTSP::simulatedAnnealing(double coolingCoefficient) {
 	std::uniform_real_distribution<double> dist(0, 1);
 	TSPSolution best = generateNearestNeighbourSolution(), bestest = best, current;
 	double chanceToAccept, diceRoll;
-	double temperature = best.value*n;
-	while (temperature > 1) {
+	double temperature = best.value*n;//nothing too fancy
+	while (true) {
 		current = generateRandomNeighbour(best);
 		if (best.value > current.value) {//we found a better solution, accept it unconditionally
 			best = current;
@@ -275,9 +275,12 @@ inline TSPSolution MatrixTSP::simulatedAnnealing(double coolingCoefficient) {
 		else {//the solution isn't better, but we might accept it based on "temperature"
 			chanceToAccept=exp(-(current.value-best.value)/temperature);
 			diceRoll = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));//yeah, it's a weird dice
+			if (diceRoll < 0.0001) {
+				break;//ending when the chance of accepting a worse solution falls below a specific threshold
+			}
 			if (chanceToAccept > diceRoll)best = current;
 		}
-		temperature *= coolingCoefficient;//check different cooling strategies
+		temperature *= coolingCoefficient;
 		//std::cout <<"T= "<< temperature << std::endl;
 	}
 	if (best.value > bestest.value) return bestest;
