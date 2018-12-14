@@ -257,6 +257,7 @@ TSPSolution MatrixTSP::localSearch() {
 		//for (unsigned int i = 0; i < n; ++i) std::cout << bestInCycle.path[i] << " ";
 		//std::cout << std::endl;
 	}
+	std::sort(bestOverall.path.begin(), bestOverall.path.end());
 	return bestOverall;
 }
 
@@ -265,18 +266,22 @@ inline TSPSolution MatrixTSP::simulatedAnnealing(double coolingCoefficient) {
 	std::uniform_real_distribution<double> dist(0, 1);
 	TSPSolution best = generateNearestNeighbourSolution(), bestest = best, current;
 	double chanceToAccept, diceRoll;
-	double temperature = best.value*n;//nothing too fancy
+	int endCounter = 0;
+	//the initial temperature is an absolute value of a difference between two randomly-generated solutions, divided by log(0.7)
+	//so that the initial chance to accept a solution is around 70%
+	double temperature = abs((generateNearestNeighbourSolution().value-best.value)/log(0.7));
 	while (true) {
 		current = generateRandomNeighbour(best);
-		if (best.value > current.value) {//we found a better solution, accept it unconditionally
+		if (best.value >= current.value) {//we found a better solution, accept it unconditionally
 			best = current;
-			if (best.value<bestest.value) bestest = current;
+			if (bestest.value>=current.value) bestest = current;
 		}
 		else {//the solution isn't better, but we might accept it based on "temperature"
-			chanceToAccept=exp(-(current.value-best.value)/temperature);
+			chanceToAccept=exp((best.value-current.value)/temperature);
 			diceRoll = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));//yeah, it's a weird dice
-			if (diceRoll < 0.0001) {
-				break;//ending when the chance of accepting a worse solution falls below a specific threshold
+			if (chanceToAccept < 0.00001) {
+				endCounter++;
+				if (endCounter>n) break;//ending when the chance of accepting a worse solution falls below a specific threshold a certain amount of times
 			}
 			if (chanceToAccept > diceRoll)best = current;
 		}

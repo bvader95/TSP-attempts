@@ -1,0 +1,8 @@
+TEST CASE: data17.txt
+Branch and bound
+0	2090	4387950	2085
+0	2090	4378317	2085
+0	2098	4404639	2085
+TEST CASE: data21.txt
+Branch and bound
+1	2707	
