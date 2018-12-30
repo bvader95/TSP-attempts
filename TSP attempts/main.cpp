@@ -38,7 +38,7 @@ int main() {
 	int algorithmNo;
 	std::cout << "Filename? ";
 	std::cin >> filename;
-	std::cout << "Algorithm? (0 - brute force, 1 - BnB, 2 - local search, 3 - SA) ";
+	std::cout << "Algorithm? (0 - brute force, 1 - BnB, 2 - local search, 3 - SA, 4 - genetic) ";
 	std::cin >> algorithmNo;
 	MatrixTSP tsp(filename);
 	TSPSolution sol;
@@ -63,6 +63,11 @@ int main() {
 	case 3:
 		start = std::chrono::steady_clock::now();
 		sol = tsp.simulatedAnnealing(0.9999);
+		stop = std::chrono::steady_clock::now();
+		break;
+	case 4:
+		start = std::chrono::steady_clock::now();
+		sol = tsp.geneticAlgorithm();
 		stop = std::chrono::steady_clock::now();
 		break;
 	default:

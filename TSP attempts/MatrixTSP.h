@@ -29,6 +29,7 @@ private:
 	TSPSolution generateNearestNeighbourSolution();
 	TSPSolution generateNearestNeighbourSolution(unsigned int initialVertex);
 	TSPSolution generateRandomNeighbour(TSPSolution solution);
+	TSPSolution orderCrossover(TSPSolution parent1, TSPSolution parent2);
 public:
 	//the constructor loading an instance of a problem from a file
 	MatrixTSP(std::string filename);
@@ -39,6 +40,7 @@ public:
 	TSPSolution branchAndBound();
 	TSPSolution localSearch();
 	TSPSolution simulatedAnnealing(double coolingCoefficient);
+	TSPSolution geneticAlgorithm();
 };
 
 MatrixTSP::MatrixTSP(std::string filename) {
@@ -371,4 +373,54 @@ TSPSolution MatrixTSP::generateRandomNeighbour(TSPSolution solution) {
 	begin = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
 	end = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
 	return singleTwoOpt(solution, begin, end);
+}
+
+TSPSolution MatrixTSP::orderCrossover(TSPSolution parent1, TSPSolution parent2){
+	//creating a vector storing data on what vertices are present in the child
+	std::vector<bool> presentInChild;
+	presentInChild.resize(n, false);
+	//picking two different random indices 
+	std::uniform_int_distribution<unsigned int> dist(0, n - 1);
+	unsigned int begin, end;
+	begin = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
+	do {
+		end = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
+	} while (begin == end);
+	//swappping them if "begin" comes before "end"
+	if (begin > end)std::swap(begin, end);
+	//copy the bit between the "begin" and "end" indices in the parent1 path to the child 
+	TSPSolution child;
+	child.path.reserve(n);
+	for (unsigned int i = begin; i <= end; ++i) {
+		child.path.push_back(parent1.path[i]);
+		presentInChild[parent1.path[i]] = true;
+	}
+	//copy all the other vertices from parent2, in the order they are in it
+	for (unsigned int i = 0; i < n; ++i) {
+		if (!presentInChild[parent2.path[i]])child.path.push_back(parent2.path[i]);
+	}
+	calculatePathsLength(child);
+	return child;
+}
+
+TSPSolution MatrixTSP::geneticAlgorithm(){
+	std::vector<TSPSolution> population;//TODO: think whether using a different structure is a good idea
+	//generate some initial solutions
+	for (unsigned int i = 0; i < n; ++i) {
+		population.push_back(generateRandomSolution());
+	}
+	
+	//main loop
+	for (unsigned int loopIteration = 0; loopIteration < 1000; ++loopIteration) {
+		//generate children
+		for (unsigned int i = 0; i < n; i = i + 2) {
+			population.push_back(orderCrossover(population[i], population[i + 1]));
+			population.push_back(orderCrossover(population[i+1], population[i]));
+		}
+		//sort the population table
+		std::sort(population.begin(), population.end());
+		//keep the N best solutions
+		population.resize(n);
+	}
+	return population[0];
 }
