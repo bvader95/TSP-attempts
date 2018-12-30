@@ -29,3 +29,11 @@ struct TSPSolution {
 	std::vector<unsigned int> path;
 	double value;
 };
+
+//operator overloading
+bool operator==(const TSPSolution& lhs, const TSPSolution& rhs) { return lhs.value == rhs.value; }
+bool operator!=(const TSPSolution& lhs, const TSPSolution& rhs) { return !(lhs == rhs); }
+bool operator< (const TSPSolution& lhs, const TSPSolution& rhs) { return lhs.value<rhs.value; }
+bool operator> (const TSPSolution& lhs, const TSPSolution& rhs) { return rhs < lhs; }
+bool operator<=(const TSPSolution& lhs, const TSPSolution& rhs) { return !(lhs > rhs); }
+bool operator>=(const TSPSolution& lhs, const TSPSolution& rhs) { return !(lhs < rhs); }
