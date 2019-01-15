@@ -30,6 +30,7 @@ private:
 	TSPSolution generateNearestNeighbourSolution(unsigned int initialVertex);
 	TSPSolution generateRandomNeighbour(TSPSolution solution);
 	TSPSolution orderCrossover(TSPSolution parent1, TSPSolution parent2);
+	TSPSolution cycleCrossover(TSPSolution parent1, TSPSolution parent2);
 public:
 	//the constructor loading an instance of a problem from a file
 	MatrixTSP(std::string filename);
@@ -403,6 +404,55 @@ TSPSolution MatrixTSP::orderCrossover(TSPSolution parent1, TSPSolution parent2){
 	return child;
 }
 
+inline TSPSolution MatrixTSP::cycleCrossover(TSPSolution parent1, TSPSolution parent2)
+{
+	//creating a vector storing data on what vertices were used to make a cycle
+	std::vector<bool> presentInCycle;
+	presentInCycle.resize(n, false);
+	//filling up an array with positions of cities in parent1
+	//p1pos[x] means that the city X is present at parent1.path[p1pos[x]]
+	std::vector<unsigned int> p1pos;
+	p1pos.resize(n);
+	for (int i = 0; i < n; ++i) {
+		p1pos[parent1.path[i]] = i;
+	}
+	//the vector of vectors, each containing a CX cycle
+	std::vector<std::vector<unsigned int>> cycles;
+	//creating the cycles
+	for (int i = 0; i < n; ++i) {
+		if (presentInCycle[i] == true) continue;
+		std::vector<unsigned int> newCycle;
+		newCycle.push_back(i);
+		presentInCycle[i] = true;
+		//the next position in the CX cycle is as follows:
+		//get the value V from parent2 from the same position as the last position in cycle
+		//then find the position of V in parent1
+		unsigned int nextInCycle = p1pos[parent2.path[i]];
+		while (nextInCycle != newCycle[0]){
+			newCycle.push_back(nextInCycle);
+			presentInCycle[nextInCycle] = true;
+			nextInCycle = p1pos[parent2.path[nextInCycle]];
+		}
+		cycles.push_back(newCycle);
+	}
+	TSPSolution child;
+	child.path.resize(n, 999999999);
+	//copying values from parents, alternating based on cycles
+	for (unsigned int cycleNo = 0; cycleNo < cycles.size(); ++cycleNo) {
+		std::vector<unsigned int> currentCycle = cycles[cycleNo];
+		for (unsigned int i = 0; i < currentCycle.size(); ++i) {
+			if (cycleNo % 2 == 0) {
+				child.path[currentCycle[i]]=parent1.path[currentCycle[i]];
+			}
+			else {
+				child.path[currentCycle[i]] = parent2.path[currentCycle[i]];
+			}
+		}
+	}
+	calculatePathsLength(child);
+	return child;
+}
+
 TSPSolution MatrixTSP::geneticAlgorithm(){
 	std::vector<TSPSolution> population;//TODO: think whether using a different structure is a good idea
 	//generate some initial solutions
@@ -414,8 +464,8 @@ TSPSolution MatrixTSP::geneticAlgorithm(){
 	for (unsigned int loopIteration = 0; loopIteration < 1000; ++loopIteration) {
 		//generate children
 		for (unsigned int i = 0; i < n; i = i + 2) {
-			population.push_back(orderCrossover(population[i], population[i + 1]));
-			population.push_back(orderCrossover(population[i+1], population[i]));
+			population.push_back(cycleCrossover(population[i], population[i + 1]));
+			population.push_back(cycleCrossover(population[i+1], population[i]));
 		}
 		//sort the population table
 		std::sort(population.begin(), population.end());
