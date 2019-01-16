@@ -41,7 +41,7 @@ public:
 	TSPSolution branchAndBound();
 	TSPSolution localSearch();
 	TSPSolution simulatedAnnealing(double coolingCoefficient);
-	TSPSolution geneticAlgorithm();
+	TSPSolution geneticAlgorithm(char crossoverOp);
 };
 
 MatrixTSP::MatrixTSP(std::string filename) {
@@ -453,7 +453,7 @@ inline TSPSolution MatrixTSP::cycleCrossover(TSPSolution parent1, TSPSolution pa
 	return child;
 }
 
-TSPSolution MatrixTSP::geneticAlgorithm(){
+TSPSolution MatrixTSP::geneticAlgorithm(char crossoverOp){
 	std::vector<TSPSolution> population;//TODO: think whether using a different structure is a good idea
 	//generate some initial solutions
 	for (unsigned int i = 0; i < n; ++i) {
@@ -464,8 +464,16 @@ TSPSolution MatrixTSP::geneticAlgorithm(){
 	for (unsigned int loopIteration = 0; loopIteration < 1000; ++loopIteration) {
 		//generate children
 		for (unsigned int i = 0; i < n; i = i + 2) {
-			population.push_back(cycleCrossover(population[i], population[i + 1]));
-			population.push_back(cycleCrossover(population[i+1], population[i]));
+			switch (crossoverOp) {
+				case 1:
+					population.push_back(cycleCrossover(population[i], population[i + 1]));
+					population.push_back(cycleCrossover(population[i + 1], population[i]));
+				break;
+				default:
+					population.push_back(orderCrossover(population[i], population[i + 1]));
+					population.push_back(orderCrossover(population[i + 1], population[i]));
+				break;
+			}
 		}
 		//sort the population table
 		std::sort(population.begin(), population.end());

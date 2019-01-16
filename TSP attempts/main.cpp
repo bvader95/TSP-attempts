@@ -67,7 +67,7 @@ int main() {
 		break;
 	case 4:
 		start = std::chrono::steady_clock::now();
-		sol = tsp.geneticAlgorithm();
+		sol = tsp.geneticAlgorithm(1);
 		stop = std::chrono::steady_clock::now();
 		break;
 	default:
