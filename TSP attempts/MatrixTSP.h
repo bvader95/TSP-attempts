@@ -31,8 +31,8 @@ private:
 	TSPSolution generateRandomNeighbour(TSPSolution solution);
 	TSPSolution orderCrossover(TSPSolution parent1, TSPSolution parent2);
 	TSPSolution cycleCrossover(TSPSolution parent1, TSPSolution parent2);
-	void cutoffSelection(std::vector<TSPSolution> &population);
-	void rouletteWheelSelection(std::vector<TSPSolution> &population);
+	void cutoffSelection(std::vector<TSPSolution> &population, unsigned int initialPopulation);
+	void rouletteWheelSelection(std::vector<TSPSolution> &population, unsigned int initialPopulation);
 public:
 	//the constructor loading an instance of a problem from a file
 	MatrixTSP(std::string filename);
@@ -43,7 +43,7 @@ public:
 	TSPSolution branchAndBound();
 	TSPSolution localSearch();
 	TSPSolution simulatedAnnealing(double coolingCoefficient);
-	TSPSolution geneticAlgorithm(char crossoverOp);
+	TSPSolution geneticAlgorithm(unsigned int initialPopulation, char crossoverOp, char selectionMethod);
 };
 
 MatrixTSP::MatrixTSP(std::string filename) {
@@ -455,14 +455,14 @@ TSPSolution MatrixTSP::cycleCrossover(TSPSolution parent1, TSPSolution parent2)
 	return child;
 }
 
-void MatrixTSP::cutoffSelection(std::vector<TSPSolution>& population){
+void MatrixTSP::cutoffSelection(std::vector<TSPSolution>& population, unsigned int initialPopulation){
 	//sort the population table
 	std::sort(population.begin(), population.end());
 	//keep the N best solutions
-	population.resize(n);
+	population.resize(initialPopulation);
 }
 
-void MatrixTSP::rouletteWheelSelection(std::vector<TSPSolution>& population){ 
+void MatrixTSP::rouletteWheelSelection(std::vector<TSPSolution>& population, unsigned int initialPopulation){ 
 	std::sort(population.begin(), population.end());
 	double bestSol = population[0].value, worstSol = population[population.size()-1].value;
 	//selection time! 
@@ -477,16 +477,16 @@ void MatrixTSP::rouletteWheelSelection(std::vector<TSPSolution>& population){
 		}
 	}
 	//cutting down the population if it's too big;
-	if (population.size() > n << 10 ) {
-		population.resize(n<<10);
+	if (population.size() > initialPopulation << 10 ) {
+		population.resize(initialPopulation<<10);
 	}
 }
 
-TSPSolution MatrixTSP::geneticAlgorithm(char crossoverOp){
+TSPSolution MatrixTSP::geneticAlgorithm(unsigned int initialPopulation, char crossoverOp, char selectionMethod){
 	std::vector<TSPSolution> population;//TODO: think whether using a different structure is a good idea
 	//generate some initial solutions differing from each other
 	population.push_back(generateRandomSolution());
-	for (unsigned int i = 0; i < n; ++i) {
+	for (unsigned int i = 0; i < initialPopulation; ++i) {
 		TSPSolution random = generateRandomSolution();
 		do {
 			random = generateRandomSolution();
@@ -510,8 +510,14 @@ TSPSolution MatrixTSP::geneticAlgorithm(char crossoverOp){
 				break;
 			}
 		}
-		//elitistSelection(population);
-		rouletteWheelSelection(population);
+		switch (selectionMethod) {
+		case 1: 
+			rouletteWheelSelection(population, initialPopulation);
+			break;
+		default:
+			cutoffSelection(population, initialPopulation);
+			break;
+		}
 	}
 	return population[0];
 }
