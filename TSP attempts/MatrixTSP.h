@@ -31,7 +31,7 @@ private:
 	TSPSolution generateRandomNeighbour(TSPSolution solution);
 	TSPSolution orderCrossover(TSPSolution parent1, TSPSolution parent2);
 	TSPSolution cycleCrossover(TSPSolution parent1, TSPSolution parent2);
-	void elitistSelection(std::vector<TSPSolution> &population);
+	void cutoffSelection(std::vector<TSPSolution> &population);
 	void rouletteWheelSelection(std::vector<TSPSolution> &population);
 public:
 	//the constructor loading an instance of a problem from a file
@@ -322,7 +322,7 @@ TSPSolution MatrixTSP::swapTwoVertices(TSPSolution sol, unsigned int v1, unsigne
 	return output;
 };
 
-inline TSPSolution MatrixTSP::generateRandomSolution() {
+TSPSolution MatrixTSP::generateRandomSolution() {
 	TSPSolution output;
 	output.path.reserve(n);
 	for (unsigned int i = 0; i < n; ++i)output.path.push_back(i);
@@ -332,13 +332,13 @@ inline TSPSolution MatrixTSP::generateRandomSolution() {
 	return output;
 }
 
-inline TSPSolution MatrixTSP::generateNearestNeighbourSolution() {
+TSPSolution MatrixTSP::generateNearestNeighbourSolution() {
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::uniform_int_distribution<unsigned int> dist(0, n - 1);
 	return generateNearestNeighbourSolution(dist(std::default_random_engine(seed)));
 }
 
-inline TSPSolution MatrixTSP::generateNearestNeighbourSolution(unsigned int initialVertex) {
+TSPSolution MatrixTSP::generateNearestNeighbourSolution(unsigned int initialVertex) {
 	TSPSolution output;
 	std::vector<bool> visited;//visited[x] is true if vertex x was visited when generating, false otherwise
 	output.path.push_back(initialVertex);
@@ -406,7 +406,7 @@ TSPSolution MatrixTSP::orderCrossover(TSPSolution parent1, TSPSolution parent2){
 	return child;
 }
 
-inline TSPSolution MatrixTSP::cycleCrossover(TSPSolution parent1, TSPSolution parent2)
+TSPSolution MatrixTSP::cycleCrossover(TSPSolution parent1, TSPSolution parent2)
 {
 	//creating a vector storing data on what vertices were used to make a cycle
 	std::vector<bool> presentInCycle;
@@ -455,14 +455,14 @@ inline TSPSolution MatrixTSP::cycleCrossover(TSPSolution parent1, TSPSolution pa
 	return child;
 }
 
-inline void MatrixTSP::elitistSelection(std::vector<TSPSolution>& population){
+void MatrixTSP::cutoffSelection(std::vector<TSPSolution>& population){
 	//sort the population table
 	std::sort(population.begin(), population.end());
 	//keep the N best solutions
 	population.resize(n);
 }
 
-inline void MatrixTSP::rouletteWheelSelection(std::vector<TSPSolution>& population){ 
+void MatrixTSP::rouletteWheelSelection(std::vector<TSPSolution>& population){ 
 	std::sort(population.begin(), population.end());
 	double bestSol = population[0].value, worstSol = population[population.size()-1].value;
 	//selection time! 
