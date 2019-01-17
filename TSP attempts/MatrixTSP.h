@@ -31,6 +31,8 @@ private:
 	TSPSolution generateRandomNeighbour(TSPSolution solution);
 	TSPSolution orderCrossover(TSPSolution parent1, TSPSolution parent2);
 	TSPSolution cycleCrossover(TSPSolution parent1, TSPSolution parent2);
+	void elitistSelection(std::vector<TSPSolution> &population);
+	void rouletteWheelSelection(std::vector<TSPSolution> &population);
 public:
 	//the constructor loading an instance of a problem from a file
 	MatrixTSP(std::string filename);
@@ -453,17 +455,50 @@ inline TSPSolution MatrixTSP::cycleCrossover(TSPSolution parent1, TSPSolution pa
 	return child;
 }
 
+inline void MatrixTSP::elitistSelection(std::vector<TSPSolution>& population){
+	//sort the population table
+	std::sort(population.begin(), population.end());
+	//keep the N best solutions
+	population.resize(n);
+}
+
+inline void MatrixTSP::rouletteWheelSelection(std::vector<TSPSolution>& population){ 
+	std::sort(population.begin(), population.end());
+	double bestSol = population[0].value, worstSol = population[population.size()-1].value;
+	//selection time! 
+	//the <random> stuff that will be used to decide if we're accepting a solution or not
+	std::uniform_real_distribution<double> dist(0, 1);
+	for (int i = 0; i < population.size(); ++i) {
+		double diceRoll = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));//yeah, it's a weird dice
+		double fitFunctionResult = 2*(population[i].value-bestSol)/(bestSol);
+		if (diceRoll < fitFunctionResult) {//the solution was deemed unfit, REMOVE IT! and adjust i to take that into account
+			population.erase(population.begin()+i);
+			--i;
+		}
+	}
+	//cutting down the population if it's too big;
+	if (population.size() > n << 10 ) {
+		population.resize(n<<10);
+	}
+}
+
 TSPSolution MatrixTSP::geneticAlgorithm(char crossoverOp){
 	std::vector<TSPSolution> population;//TODO: think whether using a different structure is a good idea
-	//generate some initial solutions
+	//generate some initial solutions differing from each other
+	population.push_back(generateRandomSolution());
 	for (unsigned int i = 0; i < n; ++i) {
-		population.push_back(generateRandomSolution());
+		TSPSolution random = generateRandomSolution();
+		do {
+			random = generateRandomSolution();
+		} while (random == population[population.size()-1]);//to ensure no repeats
+		population.push_back(random);
 	}
 	
 	//main loop
-	for (unsigned int loopIteration = 0; loopIteration < 1000; ++loopIteration) {
+	for (unsigned int loopIteration = 0; loopIteration < 20; ++loopIteration) {
 		//generate children
-		for (unsigned int i = 0; i < n; i = i + 2) {
+		unsigned int currentPopulation = population.size();
+		for (unsigned int i = 0; i < currentPopulation-1; i = i + 2) {
 			switch (crossoverOp) {
 				case 1:
 					population.push_back(cycleCrossover(population[i], population[i + 1]));
@@ -475,10 +510,8 @@ TSPSolution MatrixTSP::geneticAlgorithm(char crossoverOp){
 				break;
 			}
 		}
-		//sort the population table
-		std::sort(population.begin(), population.end());
-		//keep the N best solutions
-		population.resize(n);
+		//elitistSelection(population);
+		rouletteWheelSelection(population);
 	}
 	return population[0];
 }
