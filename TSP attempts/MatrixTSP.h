@@ -477,8 +477,8 @@ void MatrixTSP::rouletteWheelSelection(std::vector<TSPSolution>& population, uns
 		}
 	}
 	//cutting down the population if it's too big;
-	if (population.size() > initialPopulation << 10 ) {
-		population.resize(initialPopulation<<10);
+	if (population.size() > initialPopulation << 8 ) {
+		population.resize(initialPopulation<<8);
 	}
 }
 
@@ -495,7 +495,7 @@ TSPSolution MatrixTSP::geneticAlgorithm(unsigned int initialPopulation, char cro
 	}
 	
 	//main loop
-	for (unsigned int loopIteration = 0; loopIteration < 20; ++loopIteration) {
+	for (unsigned int loopIteration = 0; loopIteration < 100; ++loopIteration) {
 		//generate children
 		unsigned int currentPopulation = population.size();
 		for (unsigned int i = 0; i < currentPopulation-1; i = i + 2) {
