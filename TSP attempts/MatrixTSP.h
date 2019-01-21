@@ -32,7 +32,7 @@ private:
 	TSPSolution orderCrossover(TSPSolution parent1, TSPSolution parent2);
 	TSPSolution cycleCrossover(TSPSolution parent1, TSPSolution parent2);
 	void cutoffSelection(std::vector<TSPSolution> &population, unsigned int initialPopulation);
-	void rouletteWheelSelection(std::vector<TSPSolution> &population, unsigned int initialPopulation);
+	void tournamentSelection(std::vector<TSPSolution> &population, unsigned int initialPopulation);
 public:
 	//the constructor loading an instance of a problem from a file
 	MatrixTSP(std::string filename);
@@ -462,24 +462,18 @@ void MatrixTSP::cutoffSelection(std::vector<TSPSolution>& population, unsigned i
 	population.resize(initialPopulation);
 }
 
-void MatrixTSP::rouletteWheelSelection(std::vector<TSPSolution>& population, unsigned int initialPopulation){ 
-	std::sort(population.begin(), population.end());
-	double bestSol = population[0].value, worstSol = population[population.size()-1].value;
-	//selection time! 
-	//the <random> stuff that will be used to decide if we're accepting a solution or not
-	std::uniform_real_distribution<double> dist(0, 1);
-	for (int i = 0; i < population.size(); ++i) {
-		double diceRoll = dist(std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));//yeah, it's a weird dice
-		double fitFunctionResult = 2*(population[i].value-bestSol)/(bestSol);
-		if (diceRoll < fitFunctionResult) {//the solution was deemed unfit, REMOVE IT! and adjust i to take that into account
-			population.erase(population.begin()+i);
-			--i;
-		}
+void MatrixTSP::tournamentSelection(std::vector<TSPSolution>& population, unsigned int initialPopulation){ 
+	std::vector<TSPSolution> newPopulation;
+	/*std::shuffle(population.begin(), population.end(),
+		std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));*/
+	newPopulation.reserve(population.size() / 2);
+	for (unsigned int i = 0; i < population.size() - 1; i = i + 2) {
+		if (population[i] < population[i + 1])newPopulation.push_back(population[i]);
+		else newPopulation.push_back(population[i]);
 	}
-	//cutting down the population if it's too big;
-	if (population.size() > initialPopulation << 8 ) {
-		population.resize(initialPopulation<<8);
-	}
+	//if there's an odd amount of specimen in the original population, the last one passes without being tested
+	if (population.size() % 2 == 1)newPopulation.push_back(population[population.size()-1]);
+	population = newPopulation;
 }
 
 TSPSolution MatrixTSP::geneticAlgorithm(unsigned int initialPopulation, char crossoverOp, char selectionMethod){
@@ -498,6 +492,7 @@ TSPSolution MatrixTSP::geneticAlgorithm(unsigned int initialPopulation, char cro
 	for (unsigned int loopIteration = 0; loopIteration < 100; ++loopIteration) {
 		//generate children
 		unsigned int currentPopulation = population.size();
+		population.reserve(currentPopulation * 2);
 		for (unsigned int i = 0; i < currentPopulation-1; i = i + 2) {
 			switch (crossoverOp) {
 				case 1:
@@ -512,12 +507,20 @@ TSPSolution MatrixTSP::geneticAlgorithm(unsigned int initialPopulation, char cro
 		}
 		switch (selectionMethod) {
 		case 1: 
-			rouletteWheelSelection(population, initialPopulation);
+			tournamentSelection(population, initialPopulation);
 			break;
 		default:
 			cutoffSelection(population, initialPopulation);
 			break;
 		}
+	}
+	if (selectionMethod == 1) {
+		TSPSolution bestSol = population[0];
+		//if we're using the tournament selection, the population isn't sorted, so we need to pick the best solution manually
+		for (unsigned int i = 1; i < population.size(); ++i) {
+			if (population[i] < bestSol)bestSol = population[i];
+		}
+		return bestSol;
 	}
 	return population[0];
 }
