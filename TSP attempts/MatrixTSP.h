@@ -43,7 +43,7 @@ public:
 	TSPSolution branchAndBound();
 	TSPSolution localSearch();
 	TSPSolution simulatedAnnealing(double coolingCoefficient);
-	TSPSolution geneticAlgorithm(unsigned int initialPopulation, char crossoverOp, char selectionMethod);
+	TSPSolution geneticAlgorithm(unsigned int initialPopulation, unsigned int iterations, char crossoverOp, char selectionMethod);
 };
 
 MatrixTSP::MatrixTSP(std::string filename) {
@@ -476,7 +476,7 @@ void MatrixTSP::tournamentSelection(std::vector<TSPSolution>& population, unsign
 	population = newPopulation;
 }
 
-TSPSolution MatrixTSP::geneticAlgorithm(unsigned int initialPopulation, char crossoverOp, char selectionMethod){
+TSPSolution MatrixTSP::geneticAlgorithm(unsigned int initialPopulation, unsigned int iterations, char crossoverOp, char selectionMethod){
 	std::vector<TSPSolution> population;//TODO: think whether using a different structure is a good idea
 	//generate some initial solutions differing from each other
 	population.push_back(generateRandomSolution());
@@ -489,7 +489,7 @@ TSPSolution MatrixTSP::geneticAlgorithm(unsigned int initialPopulation, char cro
 	}
 	
 	//main loop
-	for (unsigned int loopIteration = 0; loopIteration < 100; ++loopIteration) {
+	for (unsigned int loopIteration = 0; loopIteration < iterations; ++loopIteration) {
 		//generate children
 		unsigned int currentPopulation = population.size();
 		population.reserve(currentPopulation * 2);

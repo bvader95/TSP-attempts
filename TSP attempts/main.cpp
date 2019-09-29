@@ -36,6 +36,7 @@ int main() {
 	
 	std::string filename;
 	int algorithmNo;
+	unsigned int iterations, population;
 	std::cout << "Filename? ";
 	std::cin >> filename;
 	std::cout << "Algorithm? (0 - brute force, 1 - BnB, 2 - local search, 3 - SA, 4 - genetic) ";
@@ -66,8 +67,10 @@ int main() {
 		stop = std::chrono::steady_clock::now();
 		break;
 	case 4:
+		std::cout << "Population, iteration?" << std::endl;
+		std::cin >> population >> iterations;
 		start = std::chrono::steady_clock::now();
-		sol = tsp.geneticAlgorithm(10, 1, 1);
+		sol = tsp.geneticAlgorithm(population, iterations, 0, 0);
 		stop = std::chrono::steady_clock::now();
 		break;
 	default:
